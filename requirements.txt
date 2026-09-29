@@ -1,0 +1,22 @@
+# Python 3.11 or 3.12 recommended (matches Colab; PyTorch wheels lag new Python releases).
+# Once everyone's environment works, pin exact versions with `pip freeze`.
+
+# Data and ML
+numpy
+pandas
+Pillow
+imagehash
+torch
+torchvision
+scikit-learn
+matplotlib
+
+# Demo
+streamlit
+
+# Dev
+pytest
+jupyter
+
+# This repo's package (src/recycle_coach), installed in editable mode
+-e .

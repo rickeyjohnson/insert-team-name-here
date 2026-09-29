@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Images are NOT in git (they live in the shared Drive folder). Metadata CSVs are.
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Only the final checkpoint is committed
+models/*
+!models/.gitkeep
+!models/mobilenetv3_best.pt
+
+# Secrets and personal settings
+.env
+.streamlit/secrets.toml
+CLAUDE.local.md
+.claude/settings.local.json
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
