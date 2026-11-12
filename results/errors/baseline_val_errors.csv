@@ -1,0 +1,66 @@
+image_id,split,true_label,pred_label,confidence,p_recycling,p_special_handling,p_trash,item,source,lighting,background
+taco_758,val,special_handling,recycling,0.4858,0.4858,0.0,0.0,single-use carrier bag,taco,bright,cluttered
+taco_759,val,special_handling,recycling,0.4858,0.4858,0.0,0.0,single-use carrier bag,taco,bright,cluttered
+taco_760,val,special_handling,recycling,0.4858,0.4858,0.0,0.0,single-use carrier bag,taco,bright,cluttered
+taco_761,val,special_handling,recycling,0.4858,0.4858,0.0,0.0,single-use carrier bag,taco,bright,cluttered
+taco_762,val,special_handling,recycling,0.4858,0.4858,0.0,0.0,single-use carrier bag,taco,bright,cluttered
+taco_763,val,special_handling,recycling,0.4858,0.4858,0.0,0.0,single-use carrier bag,taco,bright,cluttered
+taco_764,val,special_handling,recycling,0.4858,0.4858,0.0,0.0,single-use carrier bag,taco,bright,cluttered
+taco_1312,val,special_handling,recycling,0.4858,0.4858,0.0,0.0,single-use carrier bag,taco,bright,cluttered
+taco_1659,val,special_handling,recycling,0.4858,0.4858,0.0,0.0,single-use carrier bag,taco,bright,cluttered
+taco_3094,val,special_handling,recycling,0.4858,0.4858,0.0,0.0,single-use carrier bag,taco,bright,cluttered
+taco_3283,val,special_handling,recycling,0.4858,0.4858,0.0,0.0,aerosol,taco,bright,cluttered
+taco_3745,val,special_handling,recycling,0.4858,0.4858,0.0,0.0,single-use carrier bag,taco,bright,cluttered
+taco_4174,val,special_handling,recycling,0.4858,0.4858,0.0,0.0,single-use carrier bag,taco,bright,cluttered
+taco_4359,val,special_handling,recycling,0.4858,0.4858,0.0,0.0,polypropylene bag,taco,bright,cluttered
+taco_4671,val,special_handling,recycling,0.4858,0.4858,0.0,0.0,single-use carrier bag,taco,bright,cluttered
+taco_4529,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic film,taco,bright,cluttered
+taco_1901,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic film,taco,bright,cluttered
+taco_1746,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic film,taco,bright,cluttered
+taco_4582,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic film,taco,bright,cluttered
+taco_2232,val,trash,recycling,0.4858,0.4858,0.0,0.0,other plastic wrapper,taco,bright,cluttered
+taco_4440,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic glooves,taco,bright,cluttered
+taco_1654,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic film,taco,bright,cluttered
+taco_1522,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic straw,taco,bright,cluttered
+taco_3655,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic film,taco,bright,cluttered
+taco_1093,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic film,taco,bright,cluttered
+taco_2547,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic film,taco,bright,cluttered
+taco_790,val,trash,recycling,0.4858,0.4858,0.0,0.0,other plastic wrapper,taco,bright,cluttered
+taco_3928,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic film,taco,bright,cluttered
+taco_1450,val,trash,recycling,0.4858,0.4858,0.0,0.0,other plastic wrapper,taco,bright,cluttered
+taco_3787,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic film,taco,bright,cluttered
+taco_1505,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic film,taco,bright,cluttered
+taco_1537,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic film,taco,bright,cluttered
+taco_3273,val,trash,recycling,0.4858,0.4858,0.0,0.0,other plastic wrapper,taco,bright,cluttered
+taco_1078,val,trash,recycling,0.4858,0.4858,0.0,0.0,other plastic wrapper,taco,bright,cluttered
+taco_776,val,trash,recycling,0.4858,0.4858,0.0,0.0,paper cup,taco,bright,cluttered
+taco_3045,val,trash,recycling,0.4858,0.4858,0.0,0.0,other plastic wrapper,taco,bright,cluttered
+taco_2381,val,trash,recycling,0.4858,0.4858,0.0,0.0,other plastic wrapper,taco,bright,cluttered
+taco_2583,val,trash,recycling,0.4858,0.4858,0.0,0.0,other plastic wrapper,taco,bright,cluttered
+taco_3470,val,trash,recycling,0.4858,0.4858,0.0,0.0,other plastic wrapper,taco,bright,cluttered
+taco_2589,val,trash,recycling,0.4858,0.4858,0.0,0.0,other plastic wrapper,taco,bright,cluttered
+taco_755,val,trash,recycling,0.4858,0.4858,0.0,0.0,styrofoam piece,taco,bright,cluttered
+taco_1448,val,trash,recycling,0.4858,0.4858,0.0,0.0,other plastic wrapper,taco,bright,cluttered
+taco_1515,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic straw,taco,bright,cluttered
+taco_2716,val,trash,recycling,0.4858,0.4858,0.0,0.0,aluminium blister pack,taco,bright,cluttered
+taco_4676,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic film,taco,bright,cluttered
+taco_1511,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic straw,taco,bright,cluttered
+taco_3963,val,trash,recycling,0.4858,0.4858,0.0,0.0,other plastic wrapper,taco,bright,cluttered
+taco_698,val,trash,recycling,0.4858,0.4858,0.0,0.0,styrofoam piece,taco,bright,cluttered
+taco_225,val,trash,recycling,0.4858,0.4858,0.0,0.0,rope & strings,taco,bright,cluttered
+taco_1702,val,trash,recycling,0.4858,0.4858,0.0,0.0,paper cup,taco,bright,cluttered
+taco_2086,val,trash,recycling,0.4858,0.4858,0.0,0.0,tissues,taco,bright,cluttered
+taco_4537,val,trash,recycling,0.4858,0.4858,0.0,0.0,other plastic wrapper,taco,bright,cluttered
+taco_4567,val,trash,recycling,0.4858,0.4858,0.0,0.0,rope & strings,taco,bright,cluttered
+taco_2855,val,trash,recycling,0.4858,0.4858,0.0,0.0,tissues,taco,bright,cluttered
+taco_1521,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic straw,taco,bright,cluttered
+taco_180,val,trash,recycling,0.4858,0.4858,0.0,0.0,other plastic wrapper,taco,bright,cluttered
+taco_577,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic film,taco,bright,cluttered
+taco_1506,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic straw,taco,bright,cluttered
+taco_787,val,trash,recycling,0.4858,0.4858,0.0,0.0,garbage bag,taco,bright,cluttered
+taco_3792,val,trash,recycling,0.4858,0.4858,0.0,0.0,other plastic wrapper,taco,bright,cluttered
+taco_2718,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic film,taco,bright,cluttered
+taco_3766,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic straw,taco,bright,cluttered
+taco_3058,val,trash,recycling,0.4858,0.4858,0.0,0.0,other plastic wrapper,taco,bright,cluttered
+taco_734,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic film,taco,bright,cluttered
+taco_182,val,trash,recycling,0.4858,0.4858,0.0,0.0,plastic film,taco,bright,cluttered

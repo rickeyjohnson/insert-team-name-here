@@ -35,6 +35,24 @@ CLEAN_CSV_COLUMNS = [
 ]
 
 
+def photo_group_id(row: Dict[str, any]) -> str:
+    """Return the split group for one images.csv row: crops of the same photo share a group.
+
+    Uses an explicit group_id if present, else the TACO photo ID in source_ref
+    ("taco:<photo id>:<annotation id>" -> "taco_img_<photo id>"), else the image_id.
+    """
+    group = row.get("group_id")
+    if group is not None and pd.notna(group) and str(group).strip():
+        return str(group).strip()
+
+    source_ref = str(row.get("source_ref", "") or "")
+    parts = source_ref.split(":")
+    if len(parts) == 3 and parts[0] == "taco" and parts[1]:
+        return f"taco_img_{parts[1]}"
+
+    return str(row["image_id"])
+
+
 def compute_image_sha256(im: Image.Image) -> str:
     """Compute SHA-256 hash of RGB pixel bytes."""
     return hashlib.sha256(im.tobytes()).hexdigest()
@@ -172,7 +190,11 @@ def cluster_near_duplicates(
     records: List[Dict[str, any]],
     max_distance: int = config.PHASH_MAX_DISTANCE,
 ) -> List[Dict[str, any]]:
-    """Group near-duplicates having pHash Hamming distance <= max_distance into shared group_id."""
+    """Group near-duplicates having pHash Hamming distance <= max_distance into shared group_id.
+
+    Records that already share a group_id (crops of one photo) stay together, so a
+    near-duplicate merge pulls in the whole photo group, not just the matching crop.
+    """
     if imagehash is None:
         raise ImportError(
             "The 'imagehash' package is required for near-duplicate grouping. "
@@ -203,6 +225,11 @@ def cluster_near_duplicates(
         root_j = find(j)
         if root_i != root_j:
             parent[root_j] = root_i
+
+    first_in_group: Dict[str, int] = {}
+    for i, r in enumerate(records):
+        first = first_in_group.setdefault(r["group_id"], i)
+        union(first, i)
 
     for i in range(n):
         if not records[i].get("usable") or hashes[i] is None:
@@ -257,8 +284,7 @@ def run_cleaning(
             reviews_df=df_reviews,
         )
 
-        if "group_id" in row and pd.notna(row["group_id"]) and str(row["group_id"]).strip():
-            clean_rec["group_id"] = str(row["group_id"])
+        clean_rec["group_id"] = photo_group_id(row.to_dict())
 
         if clean_rec["usable"]:
             sha = clean_rec["sha256"]
