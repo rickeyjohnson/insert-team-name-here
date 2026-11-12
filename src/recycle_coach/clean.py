@@ -10,7 +10,10 @@ import logging
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-import imagehash
+try:
+    import imagehash
+except ImportError:
+    imagehash = None
 import pandas as pd
 from PIL import Image, ImageOps
 
@@ -39,6 +42,11 @@ def compute_image_sha256(im: Image.Image) -> str:
 
 def compute_image_phash(im: Image.Image) -> str:
     """Compute perceptual hash using imagehash.phash."""
+    if imagehash is None:
+        raise ImportError(
+            "The 'imagehash' package is required for perceptual hashing. "
+            "Please install it with: pip install imagehash"
+        )
     return str(imagehash.phash(im))
 
 
@@ -165,6 +173,11 @@ def cluster_near_duplicates(
     max_distance: int = config.PHASH_MAX_DISTANCE,
 ) -> List[Dict[str, any]]:
     """Group near-duplicates having pHash Hamming distance <= max_distance into shared group_id."""
+    if imagehash is None:
+        raise ImportError(
+            "The 'imagehash' package is required for near-duplicate grouping. "
+            "Please install it with: pip install imagehash"
+        )
     hashes = []
     for r in records:
         ph = r.get("phash")

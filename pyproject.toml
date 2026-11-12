@@ -7,6 +7,16 @@ name = "recycle-coach"
 version = "0.1.0"
 description = "Smart Recycling Coach: recycling / special handling / trash image classifier (COMP 365)"
 requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "pandas",
+    "Pillow",
+    "imagehash",
+    "torch",
+    "torchvision",
+    "scikit-learn",
+    "matplotlib",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
