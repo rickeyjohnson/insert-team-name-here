@@ -231,7 +231,8 @@ def run_cleaning(
 
     for _, row in df_images.iterrows():
         image_id = str(row["image_id"])
-        raw_path = config.ROOT / row["raw_path"]
+        p = Path(str(row["raw_path"]))
+        raw_path = p if p.is_absolute() else config.ROOT / p
         first_label = str(row.get("label", ""))
 
         clean_rec = clean_image(
