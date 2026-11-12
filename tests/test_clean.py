@@ -118,3 +118,45 @@ def test_cluster_near_duplicates():
     assert clustered[0]["group_id"] == clustered[1]["group_id"]
     # i3 should be distinct
     assert clustered[2]["group_id"] != clustered[0]["group_id"]
+
+
+def test_photo_group_id_from_taco_source_ref():
+    assert clean.photo_group_id({"image_id": "taco_345", "source_ref": "taco:12:345"}) == "taco_img_12"
+    assert clean.photo_group_id({"image_id": "team_rj_007", "source_ref": "rj"}) == "team_rj_007"
+    assert clean.photo_group_id({"image_id": "x", "source_ref": "taco:9:1", "group_id": "custom"}) == "custom"
+
+
+def test_run_cleaning_groups_crops_by_source_photo(tmp_path):
+    # images.csv has no group_id column (ingest.py doesn't write one), so crops from the
+    # same TACO photo must still share a group via source_ref, or splits leak by photo.
+    raw = tmp_path / "raw"
+    raw.mkdir()
+    rng = np.random.default_rng(0)
+    rows = []
+    for crop_id, photo in [("taco_1", 7), ("taco_2", 7), ("taco_3", 8)]:
+        Image.fromarray(rng.integers(0, 255, (160, 160, 3), dtype=np.uint8)).save(raw / f"{crop_id}.jpg")
+        rows.append({"image_id": crop_id, "raw_path": str(raw / f"{crop_id}.jpg"), "source": "taco",
+                     "source_ref": f"taco:{photo}:{crop_id[5:]}", "label": "trash"})
+    images_csv = tmp_path / "images.csv"
+    pd.DataFrame(rows).to_csv(images_csv, index=False)
+
+    df = clean.run_cleaning(images_csv=images_csv, reviews_csv=tmp_path / "none.csv",
+                            output_clean_csv=tmp_path / "clean.csv", processed_dir=tmp_path / "proc")
+    groups = dict(zip(df["image_id"], df["group_id"]))
+    assert groups["taco_1"] == groups["taco_2"] == "taco_img_7"
+    assert groups["taco_3"] == "taco_img_8"
+
+
+def test_near_duplicate_merge_keeps_photo_groups_whole():
+    # a1 and a2 come from photo A; b1 (photo B) is a near-duplicate of a1.
+    # All three must end up in one group, or a2 could land in a different split from a1.
+    gray = Image.new("RGB", (150, 150), color=(128, 128, 128))
+    gray2 = Image.new("RGB", (150, 150), color=(129, 128, 128))
+    noise = Image.fromarray(np.random.default_rng(1).integers(0, 255, (150, 150, 3), dtype=np.uint8))
+    records = [
+        {"image_id": "b1", "group_id": "B", "phash": clean.compute_image_phash(gray2), "usable": True},
+        {"image_id": "a1", "group_id": "A", "phash": clean.compute_image_phash(gray), "usable": True},
+        {"image_id": "a2", "group_id": "A", "phash": clean.compute_image_phash(noise), "usable": True},
+    ]
+    clustered = clean.cluster_near_duplicates(records, max_distance=6)
+    assert len({r["group_id"] for r in clustered}) == 1

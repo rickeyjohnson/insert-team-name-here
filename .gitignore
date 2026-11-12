@@ -12,6 +12,7 @@ data/raw/*
 !data/raw/.gitkeep
 data/processed/*
 !data/processed/.gitkeep
+data/taco_annotations.json
 
 # Only the final checkpoint is committed
 models/*
