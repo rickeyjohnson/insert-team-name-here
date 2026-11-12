@@ -2,7 +2,7 @@
 
 Owner: Dakarai Lanes · Build plan: 3.2 · Spec: docs/PROJECT_SPEC.md §10, §8.8
 Reads: data/metadata/splits.csv, data/processed/
-Writes: models/mobilenetv3_best.pt
+Writes: models/mobilenetv3_best.pt, results/metrics/mobilenetv3_history.csv
 """
 
 import logging
@@ -23,6 +23,17 @@ from recycle_coach import config
 from recycle_coach.dataset import create_dataloaders
 
 logger = logging.getLogger(__name__)
+
+
+def set_seed(seed: int = config.SEED) -> None:
+    """Seed Python, NumPy, and torch (spec §10: seed 365)."""
+    import random
+
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
 
 def get_device() -> torch.device:
@@ -97,6 +108,7 @@ def train_model(
     device: Optional[torch.device] = None,
 ) -> Dict[str, Any]:
     """Two-stage training pipeline with early stopping."""
+    set_seed(config.SEED)
     if device is None:
         device = get_device()
     logger.info("Training on device: %s", device)
@@ -206,6 +218,10 @@ def train_model(
         "trained_at": str(date.today()),
     }
     torch.save(checkpoint_data, checkpoint_path)
+
+    # Per-epoch log, so the training-curves figure can be redrawn without retraining
+    config.METRICS_DIR.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(history).to_csv(config.METRICS_DIR / "mobilenetv3_history.csv", index=False)
     logger.info("Saved best checkpoint to %s (val macro F1: %.4f)", checkpoint_path, best_macro_f1)
 
     return {
