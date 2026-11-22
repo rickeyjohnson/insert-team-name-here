@@ -1,0 +1,59 @@
+{
+  "n": 127,
+  "classes": [
+    "recycling",
+    "special_handling",
+    "trash"
+  ],
+  "accuracy": 0.6535,
+  "macro_f1": 0.611,
+  "per_class": {
+    "recycling": {
+      "precision": 0.6757,
+      "recall": 0.8475,
+      "f1": 0.7519,
+      "support": 59
+    },
+    "special_handling": {
+      "precision": 0.5625,
+      "recall": 0.5,
+      "f1": 0.5294,
+      "support": 18
+    },
+    "trash": {
+      "precision": 0.6486,
+      "recall": 0.48,
+      "f1": 0.5517,
+      "support": 50
+    }
+  },
+  "confusion_matrix": [
+    [
+      50,
+      0,
+      9
+    ],
+    [
+      5,
+      9,
+      4
+    ],
+    [
+      19,
+      7,
+      24
+    ]
+  ],
+  "model": "E2",
+  "split": "test",
+  "created": "2026-11-22",
+  "selection": {
+    "id": "E2",
+    "arch": "mobilenet_v3_large",
+    "oversample": false,
+    "val_macro_f1": 0.7452,
+    "checkpoint": "models/experiments/E2_mobilenet_v3_large.pt",
+    "rule": "highest val macro F1; ties to lower CPU ms/image",
+    "picked_on": "2026-11-22"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "n": 124,
+  "classes": [
+    "recycling",
+    "special_handling",
+    "trash"
+  ],
+  "accuracy": 0.7661,
+  "macro_f1": 0.7452,
+  "per_class": {
+    "recycling": {
+      "precision": 0.7778,
+      "recall": 0.8305,
+      "f1": 0.8033,
+      "support": 59
+    },
+    "special_handling": {
+      "precision": 0.6471,
+      "recall": 0.7333,
+      "f1": 0.6875,
+      "support": 15
+    },
+    "trash": {
+      "precision": 0.7955,
+      "recall": 0.7,
+      "f1": 0.7447,
+      "support": 50
+    }
+  },
+  "confusion_matrix": [
+    [
+      49,
+      2,
+      8
+    ],
+    [
+      3,
+      11,
+      1
+    ],
+    [
+      11,
+      4,
+      35
+    ]
+  ],
+  "model": "E2",
+  "split": "val",
+  "created": "2026-11-22"
+}

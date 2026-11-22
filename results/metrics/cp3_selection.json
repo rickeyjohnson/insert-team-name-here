@@ -1,0 +1,9 @@
+{
+  "id": "E2",
+  "arch": "mobilenet_v3_large",
+  "oversample": false,
+  "val_macro_f1": 0.7452,
+  "checkpoint": "models/experiments/E2_mobilenet_v3_large.pt",
+  "rule": "highest val macro F1; ties to lower CPU ms/image",
+  "picked_on": "2026-11-22"
+}

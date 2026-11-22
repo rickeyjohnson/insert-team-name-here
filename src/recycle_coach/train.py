@@ -1,8 +1,11 @@
-"""Two-stage MobileNetV3 fine-tuning with early stopping on val macro F1.
+"""Two-stage fine-tuning with early stopping on val macro F1.
+
+MobileNetV3-Large is the main model. The same recipe also trains MobileNetV3-Small,
+EfficientNet-B0 and ResNet-18 for the Checkpoint 3 comparison (see ARCHITECTURES).
 
 Owner: Dakarai Lanes · Build plan: 3.2 · Spec: docs/PROJECT_SPEC.md §10, §8.8
 Reads: data/metadata/splits.csv, data/processed/
-Writes: models/mobilenetv3_best.pt
+Writes: models/mobilenetv3_best.pt, results/metrics/mobilenetv3_history.csv
 """
 
 import logging
@@ -16,13 +19,24 @@ import pandas as pd
 import torch
 import torch.nn as nn
 from sklearn.metrics import accuracy_score, f1_score
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, WeightedRandomSampler
 from torchvision import models
 
 from recycle_coach import config
 from recycle_coach.dataset import create_dataloaders
 
 logger = logging.getLogger(__name__)
+
+
+def set_seed(seed: int = config.SEED) -> None:
+    """Seed Python, NumPy, and torch (spec §10: seed 365)."""
+    import random
+
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
 
 def get_device() -> torch.device:
@@ -34,17 +48,58 @@ def get_device() -> torch.device:
     return torch.device("cpu")
 
 
-def build_model(num_classes: int = len(config.CLASSES), pretrained: bool = True) -> nn.Module:
-    """Construct MobileNetV3-Large with updated classifier layer."""
-    weights = (
-        models.MobileNet_V3_Large_Weights.DEFAULT
-        if pretrained
-        else None
-    )
-    model = models.mobilenet_v3_large(weights=weights)
-    in_features = model.classifier[3].in_features
-    model.classifier[3] = nn.Linear(in_features, num_classes)
+# name -> (torchvision constructor, ImageNet weights enum name)
+ARCHITECTURES: Dict[str, Tuple[str, str]] = {
+    "mobilenet_v3_large": ("mobilenet_v3_large", "MobileNet_V3_Large_Weights"),
+    "mobilenet_v3_small": ("mobilenet_v3_small", "MobileNet_V3_Small_Weights"),
+    "efficientnet_b0": ("efficientnet_b0", "EfficientNet_B0_Weights"),
+    "resnet18": ("resnet18", "ResNet18_Weights"),
+}
+
+
+def _head_and_backbone(model: nn.Module, arch: str) -> Tuple[nn.Module, nn.Module]:
+    """Return (classifier head, feature backbone) for an architecture."""
+    if arch == "resnet18":
+        backbone = nn.ModuleList(m for name, m in model.named_children() if name != "fc")
+        return model.fc, backbone
+    return model.classifier, model.features
+
+
+def build_model(
+    num_classes: int = len(config.CLASSES),
+    pretrained: bool = True,
+    arch: str = "mobilenet_v3_large",
+) -> nn.Module:
+    """Build an ImageNet model and replace its 1,000-class output layer with num_classes."""
+    if arch not in ARCHITECTURES:
+        raise ValueError(f"Unknown arch {arch!r}; choose from {sorted(ARCHITECTURES)}")
+    ctor_name, weights_name = ARCHITECTURES[arch]
+    weights = getattr(models, weights_name).DEFAULT if pretrained else None
+    model = getattr(models, ctor_name)(weights=weights)
+
+    if arch.startswith("mobilenet_v3"):
+        in_features = model.classifier[3].in_features
+        model.classifier[3] = nn.Linear(in_features, num_classes)
+    elif arch == "efficientnet_b0":
+        in_features = model.classifier[1].in_features
+        model.classifier[1] = nn.Linear(in_features, num_classes)
+    elif arch == "resnet18":
+        model.fc = nn.Linear(model.fc.in_features, num_classes)
     return model
+
+
+def make_oversampler(splits_df: pd.DataFrame, seed: int = config.SEED) -> WeightedRandomSampler:
+    """Sampler that draws each class equally often from the train split (rows in splits.csv order)."""
+    train_df = splits_df[splits_df["split"] == "train"].reset_index(drop=True)
+    counts = train_df["final_label"].value_counts()
+    sample_weights = train_df["final_label"].map(lambda c: 1.0 / counts[c]).values
+    generator = torch.Generator().manual_seed(seed)
+    return WeightedRandomSampler(
+        weights=torch.tensor(sample_weights, dtype=torch.double),
+        num_samples=len(train_df),
+        replacement=True,
+        generator=generator,
+    )
 
 
 def compute_class_weights(
@@ -95,11 +150,19 @@ def train_model(
     patience: int = 5,
     pretrained: bool = True,
     device: Optional[torch.device] = None,
+    arch: str = "mobilenet_v3_large",
+    oversample: bool = False,
+    seed: int = config.SEED,
 ) -> Dict[str, Any]:
-    """Two-stage training pipeline with early stopping."""
+    """Two-stage training pipeline with early stopping.
+
+    arch picks the network (ARCHITECTURES). oversample=True adds a
+    WeightedRandomSampler on top of the class-weighted loss.
+    """
+    set_seed(seed)
     if device is None:
         device = get_device()
-    logger.info("Training on device: %s", device)
+    logger.info("Training %s on device: %s (oversample=%s)", arch, device, oversample)
 
     splits_df = pd.read_csv(splits_csv)
     loaders = create_dataloaders(
@@ -109,18 +172,25 @@ def train_model(
     )
     dl_train = loaders["train"]
     dl_val = loaders["val"]
+    if oversample:
+        dl_train = DataLoader(
+            dl_train.dataset,
+            batch_size=batch_size,
+            sampler=make_oversampler(splits_df, seed=seed),
+        )
 
     class_weights = compute_class_weights(splits_df, device=device)
     criterion = nn.CrossEntropyLoss(weight=class_weights)
 
-    model = build_model(pretrained=pretrained).to(device)
+    model = build_model(pretrained=pretrained, arch=arch).to(device)
+    head, backbone = _head_and_backbone(model, arch)
 
     # Stage 1: Train classifier head only
     logger.info("Stage 1: Training classifier head (%d epochs)...", stage1_epochs)
-    for param in model.features.parameters():
+    for param in backbone.parameters():
         param.requires_grad = False
 
-    opt_stage1 = torch.optim.AdamW(model.classifier.parameters(), lr=stage1_lr)
+    opt_stage1 = torch.optim.AdamW(head.parameters(), lr=stage1_lr)
 
     for ep in range(1, stage1_epochs + 1):
         model.train()
@@ -194,7 +264,8 @@ def train_model(
 
     checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
     checkpoint_data = {
-        "arch": "mobilenet_v3_large",
+        "arch": arch,
+        "oversample": oversample,
         "classes": list(config.CLASSES),
         "img_size": config.IMG_SIZE,
         "mean": list(config.IMAGENET_MEAN),
@@ -203,9 +274,14 @@ def train_model(
         "val_macro_f1": best_macro_f1,
         "best_epoch": best_epoch,
         "split_seed": config.SEED,
+        "train_seed": seed,
         "trained_at": str(date.today()),
     }
     torch.save(checkpoint_data, checkpoint_path)
+
+    # Per-epoch log, so the training-curves figure can be redrawn without retraining
+    config.METRICS_DIR.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(history).to_csv(config.METRICS_DIR / "mobilenetv3_history.csv", index=False)
     logger.info("Saved best checkpoint to %s (val macro F1: %.4f)", checkpoint_path, best_macro_f1)
 
     return {

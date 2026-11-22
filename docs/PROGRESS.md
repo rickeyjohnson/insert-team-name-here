@@ -27,10 +27,34 @@ Status key: ⚪ not started · 🟢 on track · 🟡 at risk · 🔴 blocked · 
 | Team photos uploaded | ~125 (25 each) | In progress | — |
 | Label disagreements resolved | all | 19 ambiguous excluded | 2026-10-25 |
 | Baseline val macro F1 | (reference) | 0.21 (seed-365 split, 124 crops; CP1 seed-42 split: 0.19) | 2026-11-12 |
-| MobileNetV3 val macro F1 | > baseline | 0.70 | 2026-10-25 |
+| MobileNetV3 val macro F1 | > baseline | 0.75 (E2, seed-365 split, 124 crops) | 2026-11-22 |
 | Baseline test macro F1 | (reference) | 0.21 (seed-365 split, 127 crops; CP1 seed-42 split: 0.19) | 2026-11-12 |
-| MobileNetV3 test macro F1 | ≥ 0.70 and > baseline | 0.65 (Checkpoint 1 initial run) | 2026-10-25 |
-| Demo test | ≥ 9 / 10 | Streamlit app built | 2026-11-12 |
+| MobileNetV3 test macro F1 | ≥ 0.70 and > baseline | 0.61 (E2, run once; accuracy 65.4%). Beats baseline 0.21, misses 0.70 by 0.09 | 2026-11-22 |
+| Demo test | ≥ 9 / 10 | Not run yet (needs ~15 campus photos, 5 per class) | 2026-11-22 |
+
+## Experiments (Checkpoint 3)
+
+Same split (seed 365, 564 / 124 / 127) and recipe for every model unless noted. Pick on val macro F1 only; test runs once (E7). Run with `notebooks/02_cp3_experiments.ipynb` or `scripts/run_cp3_experiments.py`.
+
+| ID | Experiment | Split | Status | Val macro F1 | Test macro F1 | CPU ms/img |
+|---|---|---|---|---|---|---|
+| E0 | Majority class (always recycling) | seed 365 | ✅ Completed | 0.21 | 0.21 | — |
+| E1 | MobileNetV3-Large, single stage (CP1 notebook) | seed 42 (leaky) | ✅ Completed | 0.77 | 0.65 | — |
+| E2 | MobileNetV3-Large, two stage, class-weighted loss | seed 365 | ✅ Completed (best epoch 1) | 0.75 | — | 38 |
+| E3 | E2 + team photos | new split | ⚪ Planned (needs team photos) | — | — | — |
+| E4 | E2 + oversample (`WeightedRandomSampler`) | seed 365 | ✅ Completed (best epoch 2) | 0.71 | — | 30 |
+| E5 | MobileNetV3-Small, same recipe | seed 365 | ✅ Completed (best epoch 2) | 0.67 | — | 15 |
+| E6 | EfficientNet-B0, same recipe | seed 365 | ✅ Completed (best epoch 4) | 0.66 | — | 44 |
+| E7 | Final: E2 picked by val, test once | seed 365 | ✅ Completed | 0.75 | 0.61 | 38 |
+
+`models/mobilenetv3_best.pt` is now E2 (2026-11-22 Colab T4 run); it replaced the 2026-11-12 checkpoint trained on the leaky split. CPU ms/img = median single-image `predict()` on the Colab CPU.
+
+**E7 test (n=127):** accuracy 0.654, macro F1 0.611. Recall: recycling 0.85 (50/59), special handling 0.50 (9/18), trash 0.48 (24/50). Confusion (rows true: recycling, special, trash): [[50, 0, 9], [5, 9, 4], [19, 7, 24]].
+
+**Targets:** committed macro F1 ≥ 0.70 missed by 0.09 (beats baseline 0.21: met); ideal macro F1 ≥ 0.80 missed; special-handling recall ≥ 0.70 missed (0.50); every-class recall ≥ 0.70 missed (trash 0.48); accuracy ≥ 0.80 missed (0.65); campus 9/10 not run.
+
+**Error patterns (from `results/errors/cp3_E2_test_errors.csv`):** 9 of the 18 special-handling test crops come from one photo of broken glass (`taco_img_598`), and the model got 1 of those 9; the other 9 special-handling crops scored 8 of 9. All 7 trash→special errors are plastic film, which looks like the plastic bags our label guide puts in special handling. Trash→recycling (19) is mostly film, wrappers and cups. Val 0.75 vs test 0.61 and best epoch 1 for E2 point to fast overfitting and a noisy 124-crop val set.
+
 
 ## Team status
 
@@ -100,6 +124,8 @@ Status key: ⚪ not started · 🟢 on track · 🟡 at risk · 🔴 blocked · 
 
 ## Log
 
+- **2026-11-22 (Dakarai, Claude Code):** Ran `notebooks/02_cp3_experiments.ipynb` on Colab T4. Val macro F1: E2 0.75, E4 0.71, E5 0.67, E6 0.66, baseline 0.21; picked E2 on val; test once: 0.61 macro F1 / 65.4% accuracy (misses 0.70). Committed results and the E2 checkpoint. Campus photo test still to do.
+- **2026-11-22 (Dakarai, Claude Code):** CP3 comparison code. `train.py` builds MobileNetV3-Large/Small, EfficientNet-B0 or ResNet-18 (`arch=`), optional class oversampling (`oversample=`), seeded runs; `predict.py` reads the architecture from the checkpoint (old checkpoints load as Large). New `experiments.py` + `scripts/run_cp3_experiments.py` (`--phase val` trains E2, E4, E5, E6 and picks on val; `--phase test` scores the pick once and refuses a second run), `demo_eval.py` + `scripts/run_demo_test.py` (campus photos vs 9/10 and 8/10-per-class targets), `notebooks/02_cp3_experiments.ipynb` for Colab. 16 new tests (41 passing). Smoke-tested both phases end to end on synthetic images (no real results yet: needs a Colab GPU run).
 - **2026-11-12 (Rickey, Claude Code):** `clean.py` now groups crops by source photo (`images.csv` has no `group_id`, so every crop was its own group and splits leaked by photo); near-duplicate merges keep whole photo groups. 3 new tests (25 passing). Ran ingest → clean → splits → baseline: 815 usable of 1,030, seed-365 split 564 / 124 / 127 with no photo in two splits, baseline (always recycling) val 47.6% / 0.21 macro F1, test 46.5% / 0.21. Committed `clean.csv`, `splits.csv`, `images.csv` (unchanged `ingest.py` output) and the baseline predictions, metrics, confusion figures and error tables.
 - **2026-11-12 (John / Team):** Modularized all core logic from `Smart_Recycling_Coach_Checkpoint.ipynb` into `src/recycle_coach/` (`ingest.py`, `clean.py`, `splits.py`, `baseline.py`, `metrics.py`, `dataset.py`, `train.py`, `predict.py`).
 - **2026-11-12 (Amaka):** Built interactive Streamlit demo (`app/app.py`) with photo upload, camera support, class probability charts, guidance cards, and mock fallback.

@@ -37,6 +37,16 @@ streamlit run app/app.py
 
 **On Colab:** clone the repo, `pip install -r requirements.txt`, and mount Drive for the images.
 
+## Checkpoint 3: model comparison
+
+On Colab (T4 GPU), open `notebooks/02_cp3_experiments.ipynb` and **Run all**. Or, with `data/processed/` in place:
+
+```bash
+python scripts/run_cp3_experiments.py --phase val    # baseline + 4 models on val, picks the best
+python scripts/run_cp3_experiments.py --phase test   # the pick on test, once; copies it to models/
+python scripts/run_demo_test.py campus_test/         # photos named test_<initials>_<class>_<item>.jpg
+```
+
 ## Layout
 
 ```

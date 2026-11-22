@@ -13,7 +13,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 from PIL import Image, ImageOps
-from torchvision import models
 
 from recycle_coach import config
 from recycle_coach.dataset import get_transforms
@@ -50,15 +49,20 @@ class Predictor:
         self.model = self._load_model(checkpoint_path)
 
     def _load_model(self, checkpoint_path: Optional[Path]) -> nn.Module:
-        model = models.mobilenet_v3_large(weights=None)
-        in_features = model.classifier[3].in_features
-        model.classifier[3] = nn.Linear(in_features, len(self.classes))
+        # Imported here to avoid a circular import (train imports dataset, like this module).
+        from recycle_coach.train import build_model
 
+        ckpt = None
         if checkpoint_path and Path(checkpoint_path).exists():
             ckpt = torch.load(checkpoint_path, map_location=self.device)
+        # Checkpoints from before Checkpoint 3 have no "arch" key; they are MobileNetV3-Large.
+        self.arch = (ckpt or {}).get("arch", "mobilenet_v3_large") if isinstance(ckpt, dict) else "mobilenet_v3_large"
+        model = build_model(num_classes=len(self.classes), pretrained=False, arch=self.arch)
+
+        if ckpt is not None:
             state_dict = ckpt.get("state_dict", ckpt)
             model.load_state_dict(state_dict)
-            logger.info("Loaded MobileNetV3 weights from %s", checkpoint_path)
+            logger.info("Loaded %s weights from %s", self.arch, checkpoint_path)
         else:
             logger.warning(
                 "Checkpoint %s not found. Model initialized with random weights.",

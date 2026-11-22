@@ -1,0 +1,6 @@
+id,model,arch,oversample,params_m,best_epoch,val_accuracy,val_macro_f1,val_recall_recycling,val_recall_special_handling,val_recall_trash,cpu_ms_per_image,train_minutes
+E0,majority class (always recycling),baseline,False,0.0,,0.4758,0.2149,1.0,0.0,0.0,0.0,0.0
+E2,"MobileNetV3-Large, two-stage, class-weighted loss (main model)",mobilenet_v3_large,False,4.21,1.0,0.7661,0.7452,0.8305,0.7333,0.7,37.7,0.9
+E4,E2 + oversample special handling (WeightedRandomSampler),mobilenet_v3_large,True,4.21,2.0,0.7581,0.7083,0.8136,0.6667,0.72,30.0,0.9
+E5,"MobileNetV3-Small, same recipe as E2",mobilenet_v3_small,False,1.52,2.0,0.7097,0.6663,0.8136,0.6,0.62,14.8,0.8
+E6,"EfficientNet-B0, same recipe as E2",efficientnet_b0,False,4.01,4.0,0.7177,0.6572,0.9153,0.6,0.52,44.0,1.3
